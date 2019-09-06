@@ -1,0 +1,210 @@
+﻿<!doctype html>
+<html lang="zh">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>换位平台</title>
+	<script src="js/html2canvas.js"></script>
+	<script src="js/jsPdf.debug.js"></script>
+	<script src="js/colorpicker.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/normalize.css" />
+	<link rel="stylesheet" type="text/css" href="css/htmleaf-demo.css">
+	<link rel="stylesheet" type="text/css" href="./css/style.css" />
+	<link rel="stylesheet" href="css/sketchpad.css">
+	<link rel="stylesheet" href="css/spectrum.css">
+	<style>
+		.sketchpad {
+			background: #FFF;
+			width: 450px;
+			height: 620px;
+			border-radius: 2px;
+
+			-webkit-box-shadow: 2px 2px 5px 0px rgba(50, 50, 50, 0.75);
+			-moz-box-shadow: 2px 2px 5px 0px rgba(50, 50, 50, 0.75);
+			box-shadow: 2px 2px 5px 0px rgba(50, 50, 50, 0.75);
+		}
+
+		.tuodong {
+			color: black;
+			border: 2px solid #ccc !important;
+			padding: 7px;
+			border-radius: 7px !important;
+		}
+	</style>
+</head>
+
+<body style="background-image: linear-gradient(to right, #00dbde 0%, #fc00ff 100%);">
+	<button id="renderPdf">导出PDF(测试功能)</button>
+	<h3 class="draggable tuodong" id="group1">1组</h3>
+	<h3 class="draggable tuodong" id="group2">2组</h3>
+	<h3 class="draggable tuodong" id="group3">3组</h3>
+	<h3 class="draggable tuodong" id="group4">4组</h3>
+	<h3 class="draggable tuodong" id="group5">5组</h3>
+	<h3 class="draggable tuodong" id="group6">6组</h3>
+	<h3 class="draggable tuodong">孤儿位1</h3>
+	<h3 class="draggable tuodong">孤儿位2</h3>
+	<h3 class="draggable tuodong">孤儿位3</h3>
+
+	<div style="text-align: left;height: 10px;"> </div>
+	
+	<div id="main_content_wrap">
+		<img src="./座位布局/使用本图.png" class="imgmap">
+		<section id="main_content">
+			<div style="text-align: center;">
+				<canvas class="sketchpad" id="sketchpad" style="float:left;"><canvas>
+			</div>
+		</section>
+		<div class="control">
+				<button onclick="animateSketchpad()"><img src="./img/播放.png" style="width: 30px;height: 30px;"></button>
+				<button onclick="undo()"><img src="./img/撤销.png" style="width: 30px;height: 30px;"></button>
+				<button onclick="redo()"><img src="./img/重做.png" style="width: 30px;height: 30px;"></button>
+				<input id="size-picker" type="range" min="1" max="50" style="margin-left:50px">
+				<div id="colorpicker" style="display: inline-block;margin-top: 5px"></div>
+				<button onclick="calculator()"><span>计算器</span></button>
+			</div>
+	</div>
+
+
+	<div class="popOut draggable" id="calculator" style="display: none;top: 20%;left: 30%;">
+		<iframe class="calculator" src="./calculator/index.html">您的浏览器不支持iframe</iframe>
+	</div>
+
+
+
+
+	<script src="js/draggin.js"></script>
+	<script src="js/jquery-3.3.1.min.js"></script>
+	<script src="js/sketchpad.js"></script>
+	<script type="text/javascript">
+		var sketchpad;
+		$(document).ready(function () {
+			sketchpad = new Sketchpad({
+				element: '#sketchpad',
+				width: 450,
+				height: 620
+			});
+			$('#size-picker').change(size);
+			$('#size-picker').val(1);
+		});
+		function undo() {
+			sketchpad.undo();
+		}
+		function redo() {
+			sketchpad.redo();
+		}
+		function size(event) {
+			sketchpad.penSize = $(event.target).val();
+		}
+		function animateSketchpad() {
+			sketchpad.animate(10);
+		}
+
+		function recover(event) {
+			var settings = sketchpad.toObject();
+			settings.element = '#other-sketchpad';
+			var otherSketchpad = new Sketchpad(settings);
+			$('#recover-button').hide();
+		}
+	</script>
+	<script type="text/javascript">
+		var downPdf = document.getElementById("renderPdf");
+		downPdf.onclick = function () {
+			html2canvas(document.body, {
+				onrendered: function (canvas) {
+					var contentWidth = canvas.width;
+					var contentHeight = canvas.height;
+					//一页pdf显示html页面生成的canvas高度;
+					var pageHeight = contentWidth / 592.28 * 841.89;
+					//未生成pdf的html页面高度
+					var leftHeight = contentHeight;
+					//pdf页面偏移
+					var position = 0;
+					//a4纸的尺寸[595.28,841.89]，html页面生成的canvas在pdf中图片的宽高
+					var imgWidth = 595.28;
+					var imgHeight = 592.28 / contentWidth * contentHeight;
+					var pageData = canvas.toDataURL('image/jpeg', 1.0);
+					var pdf = new jsPDF('', 'pt', 'a4');
+					//有两个高度需要区分，一个是html页面的实际高度，和生成pdf的页面高度(841.89)
+					//当内容未超过pdf一页显示的范围，无需分页
+					if (leftHeight < pageHeight) {
+						pdf.addImage(pageData, 'JPEG', 0, 0, imgWidth, imgHeight);
+					} else {
+						while (leftHeight > 0) {
+							pdf.addImage(pageData, 'JPEG', 0, position, imgWidth, imgHeight)
+							leftHeight -= pageHeight;
+							position -= 841.89;
+							//避免添加空白页
+							if (leftHeight > 0) {
+								pdf.addPage();
+							}
+						}
+					}
+					pdf.save('座位布局-导出.pdf');
+				}
+			})
+		}
+
+		function hexify(color) {
+			var values = color
+				.replace(/rgba?\(/, '')
+				.replace(/\)/, '')
+				.replace(/[\s+]/g, '')
+				.split(',');
+			var a = parseFloat(values[3] || 1),
+				r = Math.floor(a * parseInt(values[0]) + (1 - a) * 255),
+				g = Math.floor(a * parseInt(values[1]) + (1 - a) * 255),
+				b = Math.floor(a * parseInt(values[2]) + (1 - a) * 255);
+			return "#" +
+				("0" + r.toString(16)).slice(-2) +
+				("0" + g.toString(16)).slice(-2) +
+				("0" + b.toString(16)).slice(-2);
+		}
+
+
+		var colorPicker = new ewPlugins('colorpicker', {
+			el: "#colorpicker",
+			alpha: false,//是否开启透明度
+			size: 'normal',//颜色box类型normal,medium,small,mini
+			predefineColor: ['#000000', '#FFFFFF', '#C00000', '#FF0000', '#FFC000', '#FFFF00', '#92D050', '#00B050', '#00B0F0', '#0070C0', '#002060', '#7030A0'],//预定义颜色
+			disabled: false,//是否禁止打开颜色选择器
+			openPickerAni: 'opacity',//打开颜色选择器动画
+			sure: function (color) {
+				if (color.indexOf("rgba") == -1) {
+					yanse = color
+				} else {
+					yanse = hexify(color)
+				}
+				sketchpad.color = yanse
+			},//点击确认按钮事件回调
+			clear: function () {
+				sketchpad.color = '#000000'
+			}//点击清空按钮事件回调
+		})
+
+
+
+
+		colorbtn = document.getElementById("colorpicker")
+		colorbtn.onclick = function calculator() {
+			clrhexraw = colorbtn.getElementsByTagName("div")[0].style.background;
+			clrhex = hexify(clrhexraw)
+			sketchpad.color = clrhex
+		}
+
+		jisuanqi = 1
+		calculator1 = document.getElementById("calculator")
+		function calculator() {
+			arr = jisuanqi % 2
+			if (arr == 0) {
+				calculator1.style.display = "none"
+			} else {
+				calculator1.style.display = "block"
+			}
+			jisuanqi += 1
+		}
+	</script>
+</body>
+
+</html>
