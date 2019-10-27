@@ -10,68 +10,95 @@
 	<script src="js/jsPdf.debug.js"></script>
 	<script src="js/colorpicker.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/normalize.css" />
-	<link rel="stylesheet" type="text/css" href="css/htmleaf-demo.css">
 	<link rel="stylesheet" type="text/css" href="./css/style.css" />
 	<link rel="stylesheet" href="css/sketchpad.css">
-	<link rel="stylesheet" href="css/spectrum.css">
 	<style>
 		.sketchpad {
-			background: #FFF;
-			width: 450px;
-			height: 620px;
+			/* background: #FFF; */
+			/* width: 1500px; */
+			/* height: 630px; */
+			/* height: 630px; */
 			border-radius: 2px;
-
+			background: rgba(255, 255, 255, 0.2);
 			-webkit-box-shadow: 2px 2px 5px 0px rgba(50, 50, 50, 0.75);
 			-moz-box-shadow: 2px 2px 5px 0px rgba(50, 50, 50, 0.75);
 			box-shadow: 2px 2px 5px 0px rgba(50, 50, 50, 0.75);
 		}
-
+	</style>
+	<style>
 		.tuodong {
 			color: black;
 			border: 2px solid #ccc !important;
 			padding: 7px;
 			border-radius: 7px !important;
 		}
+
+		.tool {
+			position: fixed;
+			width: 80%;
+			height: 80%;
+			background-image: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+			border-radius: 20px;
+			top: 10%;
+			left: 10%;
+			text-align: center;
+			float: center;
+			margin: 0 auto;
+			overflow-y: scroll
+		}
 	</style>
 </head>
 
-<body style="background-image: linear-gradient(to right, #00dbde 0%, #fc00ff 100%);">
-	<button id="renderPdf">导出PDF(测试功能)</button>
-	<h3 class="draggable tuodong" id="group1">1组</h3>
-	<h3 class="draggable tuodong" id="group2">2组</h3>
-	<h3 class="draggable tuodong" id="group3">3组</h3>
-	<h3 class="draggable tuodong" id="group4">4组</h3>
-	<h3 class="draggable tuodong" id="group5">5组</h3>
-	<h3 class="draggable tuodong" id="group6">6组</h3>
-	<h3 class="draggable tuodong">孤儿位1</h3>
-	<h3 class="draggable tuodong">孤儿位2</h3>
-	<h3 class="draggable tuodong">孤儿位3</h3>
+<body class="body">
+	<div id="app">
+		<button id="tool" class="button2" style="margin-left:5px">工具</button>
+		<h1 class="draggable tuodong group" id="group1">1组</h1>
+		<h1 class="draggable tuodong group" id="group2">2组</h1>
+		<h1 class="draggable tuodong group" id="group3">3组</h1>
+		<h1 class="draggable tuodong group" id="group4">4组</h1>
+		<h1 class="draggable tuodong group" id="group5">5组</h1>
+		<h1 class="draggable tuodong group" id="group6">6组</h1>
+		<h1 class="draggable tuodong orphan" id="orphan1">孤儿位1</h1>
+		<h1 class="draggable tuodong orphan" id="orphan2">孤儿位2</h1>
+		<h1 class="draggable tuodong orphan" id="orphan3">孤儿位3</h1>
 
-	<div style="text-align: left;height: 10px;"> </div>
-	
-	<div id="main_content_wrap">
-		<img src="./座位布局/使用本图.png" class="imgmap">
-		<section id="main_content">
-			<div style="text-align: center;">
-				<canvas class="sketchpad" id="sketchpad" style="float:left;"><canvas>
+		<!-- <div style="text-align: left;height: 10px;"> </div> -->
+
+		<div id="main_content_wrap">
+			<section id="main_content">
+				<div style="text-align: center;">
+					<canvas class="sketchpad" id="sketchpad" style="float:left;"><canvas>
+				</div>
+			</section>
+			<img src="./座位布局/使用本图.png" id="myimgmap" class="imgmap">
+			<div class="control">
+				<div class="toolbg">
+					<button onclick="animateSketchpad()"><img src="./img/播放.png" style="width: 30px;height: 30px;"></button>
+					<button onclick="undo()"><img src="./img/撤销.png" style="width: 30px;height: 30px;"></button>
+					<button onclick="redo()"><img src="./img/重做.png" style="width: 30px;height: 30px;"></button>
+					<input id="size-picker" type="range" min="1" max="50" style="margin-left:5px">
+					<div id="colorpicker" style="display: inline-block;margin-top: 5px;"></div>
+					<button onclick="calculator()" style="width: 70px;height: 40px;">计算器</button>
+				</div>
 			</div>
-		</section>
-		<div class="control">
-				<button onclick="animateSketchpad()"><img src="./img/播放.png" style="width: 30px;height: 30px;"></button>
-				<button onclick="undo()"><img src="./img/撤销.png" style="width: 30px;height: 30px;"></button>
-				<button onclick="redo()"><img src="./img/重做.png" style="width: 30px;height: 30px;"></button>
-				<input id="size-picker" type="range" min="1" max="50" style="margin-left:50px">
-				<div id="colorpicker" style="display: inline-block;margin-top: 5px"></div>
-				<button onclick="calculator()"><span>计算器</span></button>
-			</div>
+		</div>
+		<div class="popOut draggable" id="calculator" style="display: none;top: 20%;left: 30%;">
+			<iframe class="calculator" src="./calculator/index.html">您的浏览器不支持iframe</iframe>
+		</div>
+		<div class="tool" id="tool-box" style="display: none;">
+			<h1>工具列表</h1>
+			<hr class="hrcss" />
+			<button id="renderPdf" class="toolbtn">导出PDF(测试功能)</button>
+			<button onclick="changebg()" class="toolbtn">更换座位图！施工中！</button>
+			<button onclick="clscanavas()" class="toolbtn">清空画板</button>
+			<button onclick="addgroup()" class="toolbtn">增加小组！施工中！</button>
+			<button onclick="canvasjson()" class="toolbtn">导出画板数据</button>
+			<button onclick="getcanvasjson()" class="toolbtn">导入画板数据！施工中！</button>
+			<button onclick="changemaxpensize()" class="toolbtn">调整画笔粗度上限！施工中！</button>
+			<button onclick="canvasshoshworgone()" class="toolbtn">隐藏/显示画板</button>
+			<button onclick="Tool.onclick()" class="toolbtn">关闭工具列表</button>
+		</div>
 	</div>
-
-
-	<div class="popOut draggable" id="calculator" style="display: none;top: 20%;left: 30%;">
-		<iframe class="calculator" src="./calculator/index.html">您的浏览器不支持iframe</iframe>
-	</div>
-
-
 
 
 	<script src="js/draggin.js"></script>
@@ -82,8 +109,8 @@
 		$(document).ready(function () {
 			sketchpad = new Sketchpad({
 				element: '#sketchpad',
-				width: 450,
-				height: 620
+				width: 1400,
+				height: 630
 			});
 			$('#size-picker').change(size);
 			$('#size-picker').val(1);
@@ -100,19 +127,20 @@
 		function animateSketchpad() {
 			sketchpad.animate(10);
 		}
-
-		function recover(event) {
-			var settings = sketchpad.toObject();
-			settings.element = '#other-sketchpad';
-			var otherSketchpad = new Sketchpad(settings);
-			$('#recover-button').hide();
-		}
+		// function recover(event) {
+	    //     var settings = sketchpad.toObject();
+	    //     settings.element = '#other-sketchpad';
+	    //     var otherSketchpad = new Sketchpad(settings);
+	    //     $('#recover-button').hide();
+	    //   }
 	</script>
 	<script type="text/javascript">
 		var downPdf = document.getElementById("renderPdf");
 		downPdf.onclick = function () {
+			Tool_box.style.display = "none"
 			html2canvas(document.body, {
 				onrendered: function (canvas) {
+					Tool_box.style.display = "block"
 					var contentWidth = canvas.width;
 					var contentHeight = canvas.height;
 					//一页pdf显示html页面生成的canvas高度;
@@ -183,18 +211,16 @@
 			}//点击清空按钮事件回调
 		})
 
-
-
-
 		colorbtn = document.getElementById("colorpicker")
-		colorbtn.onclick = function calculator() {
+		colorbtn.onclick = function () {
 			clrhexraw = colorbtn.getElementsByTagName("div")[0].style.background;
 			clrhex = hexify(clrhexraw)
 			sketchpad.color = clrhex
 		}
+		colorbtn.getElementsByTagName("div")[0].style = "background: rgb(0, 0, 0); width: 40px; height: 40px;";
 
-		jisuanqi = 1
-		calculator1 = document.getElementById("calculator")
+		var jisuanqi = 1
+		var calculator1 = document.getElementById("calculator")
 		function calculator() {
 			arr = jisuanqi % 2
 			if (arr == 0) {
@@ -203,6 +229,59 @@
 				calculator1.style.display = "block"
 			}
 			jisuanqi += 1
+		}
+
+		gongju = 1
+		var Tool = document.getElementById("tool");
+		var Tool_box = document.getElementById("tool-box");
+		Tool.onclick = function () {
+			arr = gongju % 2
+			if (arr == 0) {
+				Tool_box.style.display = "none"
+			} else {
+				Tool_box.style.display = "block"
+			}
+			gongju += 1
+		}
+		function changebg() {
+			alert("还没做，请手动更换。")
+		}
+		function addgroup() {
+			alert("还没做，请手动更换。")
+		}
+		function canvasjson() {
+			downloadblob('画板数据-导出.json', sketchpad.toJSON())
+		}
+		function getcanvasjson() {
+			alert("还没做，请手动更换。")
+		}
+		function changemaxpensize() {
+			alert("还没做，请手动更换。")
+		}
+		canvasshoshworgonemsg = 1
+		var myimgmap = document.getElementById("myimgmap");
+		function canvasshoshworgone() {
+			arr = canvasshoshworgonemsg % 2
+			if (arr != 0) {
+				$('#sketchpad').hide();
+				myimgmap.style.marginTop = "0px"
+			} else {
+				$('#sketchpad').show();
+				myimgmap.style.marginTop = "-630px"
+			}
+			canvasshoshworgonemsg += 1
+		}
+		function clscanavas() {
+			var emptySketchpad = '{ "width": 1500, "height": 630, "strokes": [], "undoHistory": [] }'
+			sketchpad.clear();
+		}
+		function downloadblob(filename, downloadblobdata) {
+			var a = document.createElement('a')
+			var blob = new Blob([downloadblobdata])
+			a.download = filename
+			a.href = URL.createObjectURL(blob)
+			a.click()
+			URL.revokeObjectURL(blob)
 		}
 	</script>
 </body>
